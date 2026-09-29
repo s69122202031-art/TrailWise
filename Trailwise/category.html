@@ -84,9 +84,20 @@
     </div>
 
     <div class="relative max-w-md">
-      <input type="text" id="categorySearch" oninput="filterCategorySearch()" placeholder="ค้นหาสถานที่ หรือกิจกรรม..." class="w-full bg-white border border-sand-300 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-rust-500 focus:outline-none">
-      <i data-lucide="search" class="w-4 h-4 text-charcoal/50 absolute left-3.5 top-3"></i>
-    </div>
+    <label for="categorySearch" class="sr-only">
+        ค้นหาสถานที่หรือกิจกรรม
+    </label>
+
+    <input
+        type="text"
+        id="categorySearch"
+        oninput="filterCategorySearch()"
+        placeholder="ค้นหาสถานที่ หรือกิจกรรม..."
+        class="w-full bg-white border border-sand-300 rounded..."
+    >
+
+    <i data-lucide="search" class="w-4 h-4 text-charcoal/50 absolute left-3.5 top-3"></i>
+</div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="categoryGrid">
     </div>

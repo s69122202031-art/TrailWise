@@ -93,7 +93,7 @@
     <div class="flex items-center justify-between h-20">
       
       <!-- Brand Logo -->
-      <a href="#" onclick="switchTab('home'); return false;" class="flex items-center gap-3.5 group">
+      <button type="button" onclick="switchTab('home')" class="flex items-center gap-3.5 group">
         <div class="relative w-11 h-11 rounded-full bg-sand-200 flex items-center justify-center p-1.5 shadow-md group-hover:scale-105 transition-transform">
           <svg class="w-full h-full" viewBox="0 0 48 48" fill="none">
             <circle cx="24" cy="24" r="23" fill="#EFE7D3"/>
@@ -108,7 +108,7 @@
           </div>
           <div class="text-xs text-sand-300 opacity-90 font-light">อุทยานแห่งชาติดอยหลวง · ระบบวางแผนเส้นทางเดินป่า</div>
         </div>
-      </a>
+      </button>
 
       <!-- Desktop Navigation (4 หน้า) -->
       <nav class="hidden md:flex items-center gap-1 bg-forest-900/60 p-1.5 rounded-full border border-forest-700/50">
@@ -351,27 +351,57 @@ function dfsPath(start, goal, visited=new Set(), path=[]){
   return null;
 }
 
-function dijkstra(start, goal){
-  const dist = {}, prev = {}, visited = new Set();
-  Object.keys(graph).forEach(v => dist[v] = Infinity);
-  dist[start] = 0;
-  while(true){
-    let u = null, best = Infinity;
-    for(const v in dist){
-      if(!visited.has(v) && dist[v] < best){ best = dist[v]; u = v; }
+function getClosestNode(dist, visited) {
+    let u = null;
+    let best = Infinity;
+
+    for (const v in dist) {
+        if (!visited.has(v) && dist[v] < best) {
+            best = dist[v];
+            u = v;
+        }
     }
-    if(u === null) break;
-    visited.add(u);
-    for(const {to, w} of graph[u]||[]){
-      const alt = dist[u] + w;
-      if(alt < dist[to]){ dist[to] = alt; prev[to] = u; }
+
+    return u;
+}
+
+function updateNeighbors(u, graph, dist, prev) {
+    for (const [to, w] of graph[u] || []) {
+        const alt = dist[u] + w;
+
+        if (alt < dist[to]) {
+            dist[to] = alt;
+            prev[to] = u;
+        }
     }
-  }
-  if(dist[goal] === Infinity) return null;
-  const path = [];
-  let cur = goal;
-  while(cur){ path.unshift(cur); cur = prev[cur]; }
-  return {path, distance: dist[goal]};
+}
+
+function dijkstra(start, goal) {
+    const dist = {}, prev = {}, visited = new Set();
+
+    Object.keys(graph).forEach(v => dist[v] = Infinity);
+    dist[start] = 0;
+
+    while (true) {
+        const u = getClosestNode(dist, visited);
+
+        if (u === null) break;
+
+        visited.add(u);
+        updateNeighbors(u, graph, dist, prev);
+    }
+
+    if (dist[goal] === Infinity) return null;
+
+    const path = [];
+    let cur = goal;
+
+    while (cur) {
+        path.unshift(cur);
+        cur = prev[cur];
+    }
+
+    return { path, distance: dist[goal] };
 }
 
 function calculatePathDistance(pathArray) {
@@ -583,7 +613,15 @@ function calculateRoute() {
     
     let isStart = i === 0;
     let isEnd = i === computedPath.length - 1;
-    let badgeColor = isStart ? 'bg-forest-800 text-white' : (isEnd ? 'bg-rust-500 text-white' : 'bg-sand-200 text-forest-900');
+    let badgeColor;
+
+if (isStart) {
+    badgeColor = 'bg-forest-800 text-white';
+} else if (isEnd) {
+    badgeColor = 'bg-rust-500 text-white';
+} else {
+    badgeColor = 'bg-sand-200 text-forest-900';
+}
     let placeIcon = places[name] ? places[name].icon : 'map-pin';
 
     li.innerHTML = `
@@ -605,7 +643,6 @@ function calculateRoute() {
   });
   safeCreateIcons();
 
-  const shortest = dijkstra(start, end);
   const fewest = bfsPath(start, end);
   if (algo === 'dijkstra' && fewest && fewest.length < computedPath.length) {
     note.style.display = 'block';
@@ -699,7 +736,19 @@ function drawGraphCanvas(svgId, highlightPath = []) {
     circleOuter.setAttribute('cx', p.x);
     circleOuter.setAttribute('cy', p.y);
     circleOuter.setAttribute('r', isNodeInPath ? '18' : '14');
-    circleOuter.setAttribute('fill', isStartNode ? '#1F3A2E' : (isEndNode ? '#B5541F' : (isNodeInPath ? '#386641' : '#FBF8EF')));
+   let nodeFill;
+
+if (isStartNode) {
+    nodeFill = '#1F3A2E';
+} else if (isEndNode) {
+    nodeFill = '#B5541F';
+} else if (isNodeInPath) {
+    nodeFill = '#386641';
+} else {
+    nodeFill = '#F8F8FF';
+}
+
+circleOuter.setAttribute('fill', nodeFill);
     circleOuter.setAttribute('stroke', isNodeInPath ? '#B5541F' : '#386641');
     circleOuter.setAttribute('stroke-width', '3');
     group.appendChild(circleOuter);
